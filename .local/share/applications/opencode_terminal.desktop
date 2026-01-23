@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Opencode Chat
+GenericName=AI Terminal Assistant
+Comment=Local LLM Interface (Opencode)
+Exec=uwsm-app -- kitty --class opencode_terminal.sh -e /home/dim/user_scripts/llm/opencode_terminal.sh
+Icon=utilities-terminal
+Terminal=false
+Categories=Development;Utility;System;
+Keywords=ai;chat;llm;gpt;
+StartupNotify=true
+Path=
