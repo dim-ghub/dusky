@@ -139,8 +139,8 @@ ln -nfs $HOME/.config/matugen/generated/obsidian-theme.css $HOME/Documents/pensi
 input_path  = '~/.config/matugen/templates/spotify-colors.ini'
 output_path = '~/.config/matugen/generated/spotify-colors.ini'
 post_hook   = '''
-if command -v spicetify &> /dev/null && [ -d "$HOME/.config/spicetify/Themes/Comfy" ]; then
-    ln -nfs $HOME/.config/matugen/generated/spotify-colors.ini $HOME/.config/spicetify/Themes/Comfy/color.ini;
+if command -v spicetify &> /dev/null && [ -d "$HOME/.config/spicetify/Themes/text" ]; then
+    ln -nfs $HOME/.config/matugen/generated/spotify-colors.ini $HOME/.config/spicetify/Themes/text/color.ini;
     spicetify apply -n;
     hyprctl dispatch sendshortcut "CTRL SHIFT, R, class:^(spotify)$" || true;
 fi
@@ -163,6 +163,6 @@ mkdir -p $HOME/.config/btop/themes;
 ln -nfs $HOME/.config/matugen/generated/btop-colors.theme $HOME/.config/btop/themes/matugen.theme
 '''
 
-[templates.vesktop]
-input_path = '~/.config/matugen/templates/midnight-discord.css'
+[templates.Equicord]
+input_path = '~/.config/matugen/templates/sys24-discord.css'
 output_path = '~/.config/Equicord/settings/quickCss.css'
