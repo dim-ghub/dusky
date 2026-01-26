@@ -57,6 +57,6 @@ application/json=codium-wayland.desktop;nvim.desktop;org.gnome.TextEditor.deskto
 application/x-zerosize=nvim.desktop;codium.desktop;
 application/x-shellscript=org.gnome.TextEditor.desktop;codium-wayland.desktop;
 application/xml=codium-wayland.desktop;
-text/x-csrc=codium.desktop;codium-wayland.desktop;
+text/x-csrc=codium-wayland.desktop;codium.desktop;
 image/png=gimp.desktop;
 application/toml=codium-wayland.desktop;

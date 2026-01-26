@@ -166,3 +166,8 @@ ln -nfs $HOME/.config/matugen/generated/btop-colors.theme $HOME/.config/btop/the
 [templates.Equicord]
 input_path = '~/.config/matugen/templates/sys24-discord.css'
 output_path = '~/.config/Equicord/settings/quickCss.css'
+
+[templates.Steam]
+input_path = '~/.config/matugen/templates/steam.json'
+output_path = '~/homebrew/themes/Color Master/config_USER.json'
+post_hook = 'sudo systemctl restart plugin_loader'
