@@ -104,5 +104,14 @@ log_info "Applying settings: Mode=$selected_mode, Type=$selected_type, Contrast=
 
 # Run controller but suppress script failure.
 # We capture the exit code for logging purposes only.
+# --- APPLY CHANGES ---
+
+log_info "Applying settings: Mode=$selected_mode, Type=$selected_type, Contrast=$selected_contrast"
+
 if ! "$THEME_CTL" set --mode "$selected_mode" --type "$selected_type" --contrast "$selected_contrast"; then
-    logger
+    logger -p user.err -t "$APP_NAME" "Failed to apply theme settings via $THEME_CTL"
+    notify-send -u critical "Theme Menu Error" "Failed to apply changes. Check logs."
+    exit 1
+fi
+
+exit 0

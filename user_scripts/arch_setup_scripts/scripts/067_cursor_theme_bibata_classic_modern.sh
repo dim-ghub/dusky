@@ -24,7 +24,7 @@ readonly ICON_DIR="${XDG_DATA_HOME}/icons"
 readonly THEME_PATH="${ICON_DIR}/${THEME_NAME}"
 
 # Network settings
-readonly CURL_TIMEOUT=60
+readonly CURL_TIMEOUT=30
 readonly CURL_RETRIES=3
 
 # 3. Colors (Safe & Compact)

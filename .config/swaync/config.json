@@ -1,7 +1,7 @@
 {
     "$schema": "/etc/xdg/swaync/configSchema.json",
-    "positionX": "right",
-    "positionY": "top",
+    "positionX": "left",
+    "positionY": "bottom",
 
     "timeout": 5,
     "timeout-low": 3,
@@ -64,7 +64,7 @@
                 },
                 {
                     "label": "",
-                    "command": "uwsm-app -- $HOME/user_scripts/theme_matugen/random_theme.sh"
+                    "command": "uwsm-app -- $HOME/user_scripts/theme_matugen/theme_ctl.sh random"
                 },
                 {
                     "label": "󰓅",

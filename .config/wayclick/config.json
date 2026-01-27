@@ -1,10 +1,10 @@
 {
-    "defaults": [
-        "key1.wav",
-        "key3.wav",
-        "key4.wav"
-    ],
-    "mappings": {
+  "defaults": [
+    "key1.wav",
+    "key3.wav",
+    "key4.wav"
+  ],
+  "mappings": {
         "1": "ctrl.wav",
         "2": "key1.wav",
         "3": "key2.wav",
@@ -126,43 +126,5 @@
         "61009": "key3.wav",
         "61010": "key4.wav",
         "61011": "key1.wav"
-    },
-    "keybindings": {
-        "a": "key1.wav",
-        "b": "key2.wav",
-        "c": "key3.wav",
-        "d": "key4.wav",
-        "e": "key5.wav",
-        "f": "key6.wav",
-        "g": "key7.wav",
-        "h": "key8.wav",
-        "i": "key9.wav",
-        "j": "key10.wav",
-        "k": "key11.wav",
-        "l": "key12.wav",
-        "m": "key13.wav",
-        "n": "key14.wav",
-        "o": "key15.wav",
-        "p": "key16.wav",
-        "q": "key17.wav",
-        "r": "key18.wav",
-        "s": "key19.wav",
-        "t": "key20.wav",
-        "u": "key21.wav",
-        "v": "key22.wav",
-        "w": "key23.wav",
-        "x": "key24.wav",
-        "y": "key25.wav",
-        "z": "key26.wav",
-        "1": "key27.wav",
-        "2": "key28.wav",
-        "3": "key29.wav",
-        "4": "key30.wav",
-        "5": "key31.wav",
-        "6": "key32.wav",
-        "7": "key33.wav",
-        "8": "key34.wav",
-        "9": "key35.wav",
-        "0": "key36.wav"
-    }
+  }
 }

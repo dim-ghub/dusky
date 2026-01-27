@@ -139,10 +139,20 @@ ln -nfs $HOME/.config/matugen/generated/obsidian-theme.css $HOME/Documents/pensi
 input_path  = '~/.config/matugen/templates/spotify-colors.ini'
 output_path = '~/.config/matugen/generated/spotify-colors.ini'
 post_hook   = '''
-if command -v spicetify &> /dev/null && [ -d "$HOME/.config/spicetify/Themes/text" ]; then
-    ln -nfs $HOME/.config/matugen/generated/spotify-colors.ini $HOME/.config/spicetify/Themes/text/color.ini;
+if command -v spicetify &> /dev/null && [ -d "$HOME/.config/spicetify/Themes/dusky" ]; then
+    ln -nfs $HOME/.config/matugen/generated/spotify-colors.ini $HOME/.config/spicetify/Themes/dusky/color.ini;
     spicetify apply -n;
     hyprctl dispatch sendshortcut "CTRL SHIFT, R, class:^(spotify)$" || true;
+fi
+'''
+
+[templates.steam]
+input_path  = '~/.config/matugen/templates/steam.json'
+output_path = '~/.config/matugen/generated/steam.json'
+post_hook   = '''
+if [[ -d "$HOME/homebrew/themes/Color Master" ]]; then
+    ln -nfs $HOME/.config/matugen/generated/steam.json $HOME/homebrew/themes/Color\ Master/config_USER.json;
+    sudo systemctl restart plugin_loader;
 fi
 '''
 
@@ -163,11 +173,10 @@ mkdir -p $HOME/.config/btop/themes;
 ln -nfs $HOME/.config/matugen/generated/btop-colors.theme $HOME/.config/btop/themes/matugen.theme
 '''
 
-[templates.Equicord]
-input_path = '~/.config/matugen/templates/sys24-discord.css'
+[templates.discord]
+input_path  = '~/.config/matugen/templates/midnight-discord.css'
 output_path = '~/.config/Equicord/settings/quickCss.css'
 
-[templates.Steam]
-input_path = '~/.config/matugen/templates/steam.json'
-output_path = '~/homebrew/themes/Color Master/config_USER.json'
-post_hook = 'sudo systemctl restart plugin_loader'
+[templates.obs-studio]
+input_path  = '~/.config/matugen/templates/obs-studio.ovt'
+output_path = '~/.config/obs-studio/themes/matugen.ovt'
