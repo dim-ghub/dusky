@@ -55,4 +55,4 @@ application/json=codium-wayland.desktop;nvim.desktop;org.gnome.TextEditor.deskto
 application/x-zerosize=nvim.desktop;codium-wayland.desktop;
 text/css=codium-wayland.desktop;
 text/x-csrc=codium-wayland.desktop;
-application/toml=codium-wayland.desktop;
+application/toml=codium-wayland.desktop;codium.desktop;
