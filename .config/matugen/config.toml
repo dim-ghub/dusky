@@ -154,10 +154,10 @@ command -v spicetify >/dev/null 2>&1 && [ -d "$HOME/.config/spicetify/Themes/dus
 input_path  = '~/.config/matugen/templates/steam.json'
 output_path = '~/.config/matugen/generated/steam.json'
 post_hook   = '''
-if [[ -d "$HOME/homebrew/themes/Color Master" ]]; then
+[ -d "$HOME/homebrew/themes/Color Master" ] && {
     ln -nfs $HOME/.config/matugen/generated/steam.json $HOME/homebrew/themes/Color\ Master/config_USER.json;
     sudo systemctl restart plugin_loader;
-fi
+}
 '''
 
 [templates.cava]
@@ -184,17 +184,13 @@ output_path = '~/.config/matugen/templates/fastfetch'
 post_hook   = '~/user_scripts/fastfetch/logogen.sh'
 
 [templates.discord]
-input_path  = '~/.config/matugen/templates/midnight-discord.json'
-output_path = '~/.config/matugen/generated/midnight-discord.json'
+input_path  = '~/.config/matugen/templates/midnight-discord.css'
+output_path = '~/.config/matugen/generated/midnight-discord.css'
 post_hook   = '''
-for p in \
-  "$HOME/.config/vesktop/settings/quickCss.css" \
-  "$HOME/.var/app/dev.vencord.Vesktop/config/vesktop/settings/quickCss.css" \
-  "$HOME/.config/Vencord/settings/quickCss.css" \
-  "$HOME/.config/equibop/settings/quickCss.css" \
-  "$HOME/.var/app/org.equicord.equibop/config/equibop/settings/quickCss.css" \
-  "$HOME/.config/Equicord/settings/quickCss.css" 
-do
-  [ -d "$(dirname "$p")" ] && ln -nfs "$HOME/.config/generated/midnight-discord.css" "$p"
-done
+[ -d "$(dirname "$HOME/.config/vesktop/settings/quickCss.css")" ] && ln -nfs "$HOME/.config/matugen/generated/midnight-discord.css" "$HOME/.config/vesktop/settings/quickCss.css";
+[ -d "$(dirname "$HOME/.var/app/dev.vencord.Vesktop/config/vesktop/settings/quickCss.css")" ] && ln -nfs "$HOME/.config/matugen/generated/midnight-discord.css" "$HOME/.var/app/dev.vencord.Vesktop/config/vesktop/settings/quickCss.css";
+[ -d "$(dirname "$HOME/.config/Vencord/settings/quickCss.css")" ] && ln -nfs "$HOME/.config/matugen/generated/midnight-discord.css" "$HOME/.config/Vencord/settings/quickCss.css";
+[ -d "$(dirname "$HOME/.config/equibop/settings/quickCss.css")" ] && ln -nfs "$HOME/.config/matugen/generated/midnight-discord.css" "$HOME/.config/equibop/settings/quickCss.css";
+[ -d "$(dirname "$HOME/.var/app/org.equicord.equibop/config/equibop/settings/quickCss.css")" ] && ln -nfs "$HOME/.config/matugen/generated/midnight-discord.css" "$HOME/.var/app/org.equicord.equibop/config/equibop/settings/quickCss.css";
+[ -d "$(dirname "$HOME/.config/Equicord/settings/quickCss.css")" ] && ln -nfs "$HOME/.config/matugen/generated/midnight-discord.css" "$HOME/.config/Equicord/settings/quickCss.css"
 '''
