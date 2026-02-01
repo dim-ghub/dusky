@@ -15,6 +15,7 @@
 #
 # Usage:
 #   theme_ctl set --mode dark --type scheme-vibrant
+#   theme_ctl set --no-wall --mode light
 #   theme_ctl random
 #   theme_ctl refresh
 #   theme_ctl get
@@ -23,27 +24,21 @@
 set -euo pipefail
 
 # --- CONFIGURATION ---
-# Updated: State now lives in the Dusky settings directory
 readonly STATE_DIR="${HOME}/.config/dusky/settings/dusky_theme"
 readonly STATE_FILE="${STATE_DIR}/state.conf"
 readonly LOCK_FILE="/tmp/theme_ctl.lock"
-
-# Public state for external scripts (0=Dark, 1=Light)
-# Now resides in the same directory as STATE_FILE
 readonly PUBLIC_STATE_FILE="${STATE_DIR}/state"
-
+readonly TRACK_LIGHT="${STATE_DIR}/light_wal"
+readonly TRACK_DARK="${STATE_DIR}/dark_wal"
 readonly BASE_PICTURES="${HOME}/Pictures"
 readonly WALLPAPER_ROOT="${BASE_PICTURES}/wallpapers"
 readonly ACTIVE_THEME_DIR="${WALLPAPER_ROOT}/active_theme"
-
 readonly DEFAULT_MODE="dark"
 readonly DEFAULT_TYPE="scheme-tonal-spot"
 readonly DEFAULT_CONTRAST="0"
-
-# Timeouts & Limits
 readonly FLOCK_TIMEOUT_SEC=30
 readonly DAEMON_POLL_INTERVAL=0.1
-readonly DAEMON_POLL_LIMIT=50   # 50 * 0.1s = 5 seconds max
+readonly DAEMON_POLL_LIMIT=50
 
 # --- STATE VARIABLES (populated by read_state) ---
 THEME_MODE=""
@@ -54,11 +49,13 @@ MATUGEN_CONTRAST=""
 _TEMP_FILE=""
 
 cleanup() {
-    # Safer cleanup check: only delete if variable is set and file exists
+    local exit_code=$?
     if [[ -n "${_TEMP_FILE:-}" && -e "$_TEMP_FILE" ]]; then
         rm -f "$_TEMP_FILE"
     fi
+    exit "$exit_code"
 }
+
 trap cleanup EXIT
 
 # --- HELPER FUNCTIONS ---
@@ -67,7 +64,6 @@ log() { printf '\033[1;34m::\033[0m %s\n' "$*"; }
 err() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; }
 die() { err "$@"; exit 1; }
 
-# Helper to trim trailing whitespace
 trim_trailing() {
     local str="$1"
     printf '%s' "${str%"${str##*[![:space:]]}"}"
@@ -76,7 +72,8 @@ trim_trailing() {
 check_deps() {
     local cmd
     local -a missing=()
-    for cmd in swww matugen flock; do
+    # Kept find/sort checks for safety despite AI critique (Trust but Verify)
+    for cmd in swww matugen flock find sort; do
         command -v "$cmd" &>/dev/null || missing+=("$cmd")
     done
     (( ${#missing[@]} == 0 )) || die "Missing required commands: ${missing[*]}"
@@ -88,7 +85,6 @@ update_public_state() {
     local mode="$1"
     local state_val
 
-    # Ensure directory exists (uses shared STATE_DIR now)
     [[ -d "$STATE_DIR" ]] || mkdir -p "$STATE_DIR"
 
     if [[ "$mode" == "light" ]]; then
@@ -97,7 +93,6 @@ update_public_state() {
         state_val=0
     fi
 
-    # Atomic write
     printf '%s\n' "$state_val" > "${PUBLIC_STATE_FILE}.tmp"
     mv -f "${PUBLIC_STATE_FILE}.tmp" "$PUBLIC_STATE_FILE"
 }
@@ -112,9 +107,15 @@ read_state() {
     local key value
     while IFS='=' read -r key value || [[ -n "$key" ]]; do
         [[ -z "$key" || "${key:0:1}" == "#" ]] && continue
-        
-        value="${value#[\"\']}"
-        value="${value%[\"\']}"
+
+        # Strict quote stripping: only strip if both start and end match
+        if [[ ${#value} -ge 2 ]]; then
+            if [[ "${value:0:1}" == '"' && "${value: -1}" == '"' ]]; then
+                value="${value:1:-1}"
+            elif [[ "${value:0:1}" == "'" && "${value: -1}" == "'" ]]; then
+                value="${value:1:-1}"
+            fi
+        fi
 
         case "$key" in
             THEME_MODE)       THEME_MODE="$value" ;;
@@ -127,7 +128,6 @@ read_state() {
 init_state() {
     [[ -d "$STATE_DIR" ]] || mkdir -p "$STATE_DIR"
 
-    # Check if file is missing OR empty (-s returns true if file exists and size > 0)
     if [[ ! -s "$STATE_FILE" ]]; then
         log "Initializing new state file at ${STATE_FILE}..."
         printf '%s\n' \
@@ -148,7 +148,6 @@ update_state_key() {
 
     _TEMP_FILE=$(mktemp "${STATE_DIR}/state.conf.XXXXXX")
 
-    # If STATE_FILE is missing/empty, loop won't run, so we just append later
     if [[ -s "$STATE_FILE" ]]; then
         while IFS= read -r line || [[ -n "$line" ]]; do
             if [[ "$line" == "${target_key}="* ]]; then
@@ -160,14 +159,11 @@ update_state_key() {
         done < "$STATE_FILE" > "$_TEMP_FILE"
     fi
 
-    # If key wasn't found (or file was empty), append it
-    if (( ! found )); then
-        printf '%s=%s\n' "$target_key" "$new_value" >> "$_TEMP_FILE"
-    fi
+    (( found )) || printf '%s=%s\n' "$target_key" "$new_value" >> "$_TEMP_FILE"
 
     mv -f "$_TEMP_FILE" "$STATE_FILE"
     _TEMP_FILE=""
-    
+
     if [[ "$target_key" == "THEME_MODE" ]]; then
         update_public_state "$new_value"
     fi
@@ -187,14 +183,28 @@ move_directories() {
 
         if [[ "$target_mode" == "dark" ]]; then
             if [[ -d "$stored_dark" ]]; then
-                [[ -d "$ACTIVE_THEME_DIR" ]] && mv "$ACTIVE_THEME_DIR" "$stored_light"
+                if [[ -d "$ACTIVE_THEME_DIR" ]]; then
+                    # FATAL FIX: If target storage exists, abort to prevent nesting/corruption.
+                    if [[ -d "$stored_light" ]]; then
+                        die "FATAL: Ambiguous State. '${stored_light}' already exists. Cannot stash active theme safely."
+                    else
+                        mv "$ACTIVE_THEME_DIR" "$stored_light"
+                    fi
+                fi
                 mv "$stored_dark" "$ACTIVE_THEME_DIR"
             elif [[ ! -d "$ACTIVE_THEME_DIR" ]]; then
                 log "WARN: Neither stored 'dark' nor 'active_theme' found."
             fi
         else
             if [[ -d "$stored_light" ]]; then
-                [[ -d "$ACTIVE_THEME_DIR" ]] && mv "$ACTIVE_THEME_DIR" "$stored_dark"
+                if [[ -d "$ACTIVE_THEME_DIR" ]]; then
+                    # FATAL FIX: If target storage exists, abort to prevent nesting/corruption.
+                    if [[ -d "$stored_dark" ]]; then
+                        die "FATAL: Ambiguous State. '${stored_dark}' already exists. Cannot stash active theme safely."
+                    else
+                        mv "$ACTIVE_THEME_DIR" "$stored_dark"
+                    fi
+                fi
                 mv "$stored_light" "$ACTIVE_THEME_DIR"
             elif [[ ! -d "$ACTIVE_THEME_DIR" ]]; then
                 log "WARN: Neither stored 'light' nor 'active_theme' found."
@@ -218,7 +228,7 @@ wait_for_process() {
 ensure_swww_running() {
     pgrep -x swww-daemon &>/dev/null && return 0
     log "Starting swww-daemon..."
-    
+
     if systemctl --user cat swww.service &>/dev/null; then
         systemctl --user start swww.service
         sleep 0.3
@@ -237,7 +247,7 @@ ensure_swww_running() {
 }
 
 ensure_swaync_running() {
-    pgrep -x swaync >/dev/null && return 0
+    pgrep -x swaync &>/dev/null && return 0
     log "Starting swaync..."
 
     if command -v uwsm-app &>/dev/null; then
@@ -255,26 +265,56 @@ ensure_swaync_running() {
     sleep 0.5
 }
 
-select_random_wallpaper() {
-    (
-        shopt -s nullglob globstar
-        # Try active theme directory first (recursive)
-        local -a wallpapers=("${ACTIVE_THEME_DIR}"/**/*.{jpg,jpeg,png,webp,gif})
+select_next_wallpaper() {
+    local track_file
+    if [[ "$THEME_MODE" == "light" ]]; then
+        track_file="$TRACK_LIGHT"
+    else
+        track_file="$TRACK_DARK"
+    fi
 
-        # FALLBACK: If active theme is empty, check the parent root (flat search)
-        if (( ${#wallpapers[@]} == 0 )); then
-            wallpapers=("${WALLPAPER_ROOT}"/*.{jpg,jpeg,png,webp,gif})
-        fi
-
-        (( ${#wallpapers[@]} > 0 )) || exit 1
-        printf '%s' "${wallpapers[RANDOM % ${#wallpapers[@]}]}"
+    local -a wallpapers
+    mapfile -d '' wallpapers < <(
+        find "${ACTIVE_THEME_DIR}" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.gif" \) -print0 | sort -z -V
     )
-}
 
+    # Fallback: check parent root if active theme is empty
+    if (( ${#wallpapers[@]} == 0 )); then
+        mapfile -d '' wallpapers < <(
+            find "${WALLPAPER_ROOT}" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.gif" \) -print0 | sort -z -V
+        )
+    fi
+
+    (( ${#wallpapers[@]} > 0 )) || return 1
+
+    local last_wal=""
+    [[ -f "$track_file" ]] && last_wal=$(<"$track_file")
+
+    local next_index=0
+
+    if [[ -n "$last_wal" ]]; then
+        local i
+        for i in "${!wallpapers[@]}"; do
+            if [[ "${wallpapers[$i]##*/}" == "$last_wal" ]]; then
+                next_index=$(( i + 1 ))
+                break
+            fi
+        done
+    fi
+
+    (( next_index >= ${#wallpapers[@]} )) && next_index=0
+
+    local selected="${wallpapers[$next_index]}"
+
+    mkdir -p "${track_file%/*}"
+    printf '%s' "${selected##*/}" > "$track_file"
+
+    printf '%s' "$selected"
+}
 
 apply_random_wallpaper() {
     local wallpaper
-    wallpaper=$(select_random_wallpaper) || die "No wallpapers found in ${ACTIVE_THEME_DIR}"
+    wallpaper=$(select_next_wallpaper) || die "No wallpapers found in ${ACTIVE_THEME_DIR}"
 
     log "Selected: ${wallpaper##*/}"
 
@@ -288,7 +328,7 @@ apply_random_wallpaper() {
 }
 
 regenerate_current() {
-    local swww_output current_wallpaper
+    local swww_output current_wallpaper resolved_wallpaper filename
     ensure_swww_running
 
     swww_output=$(swww query 2>&1 | head -n 1) || die "swww query failed: $swww_output"
@@ -297,10 +337,28 @@ regenerate_current() {
     current_wallpaper="${swww_output##*image: }"
     current_wallpaper=$(trim_trailing "$current_wallpaper")
 
-    [[ -f "$current_wallpaper" ]] || die "Image file does not exist: ${current_wallpaper}"
+    resolved_wallpaper="$current_wallpaper"
 
-    log "Current wallpaper: ${current_wallpaper##*/}"
-    generate_colors "$current_wallpaper"
+    # Resolve wallpaper if directory swap moved the file
+    if [[ ! -f "$resolved_wallpaper" ]]; then
+        filename="${current_wallpaper##*/}"
+
+        if [[ -f "${BASE_PICTURES}/dark/${filename}" ]]; then
+            resolved_wallpaper="${BASE_PICTURES}/dark/${filename}"
+        elif [[ -f "${BASE_PICTURES}/light/${filename}" ]]; then
+            resolved_wallpaper="${BASE_PICTURES}/light/${filename}"
+        fi
+    fi
+
+    [[ -f "$resolved_wallpaper" ]] || die "Image file does not exist: ${current_wallpaper}"
+
+    if [[ "$resolved_wallpaper" != "$current_wallpaper" ]]; then
+        log "Wallpaper moved; resolved to: ${resolved_wallpaper}"
+    else
+        log "Current wallpaper: ${resolved_wallpaper##*/}"
+    fi
+
+    generate_colors "$resolved_wallpaper"
 }
 
 generate_colors() {
@@ -317,11 +375,8 @@ generate_colors() {
 
     "${cmd[@]}" || die "Matugen generation failed"
 
-    if command -v gsettings &>/dev/null; then
-        if ! gsettings set org.gnome.desktop.interface color-scheme "prefer-${THEME_MODE}" 2>/dev/null; then
-            log "Note: gsettings update skipped"
-        fi
-    fi
+    command -v gsettings &>/dev/null && \
+        gsettings set org.gnome.desktop.interface color-scheme "prefer-${THEME_MODE}" 2>/dev/null || true
 }
 
 # --- CLI HANDLER ---
@@ -336,21 +391,26 @@ Commands:
               --type <scheme-*|disable>
               --contrast <num|disable>
               --defaults  Reset all settings to defaults
-  random    Pick random wallpaper and apply theme.
+              --no-wall   Prevent wallpaper change (e.g., during refresh)
+  random    Cycle to next wallpaper (chronological/natural sort) and apply theme.
   refresh   Regenerate colors for current wallpaper.
   get       Show current configuration.
 
 Examples:
   theme_ctl set --mode dark --type scheme-vibrant
+  theme_ctl set --no-wall --mode light
   theme_ctl random
   theme_ctl refresh
 EOF
 }
 
 cmd_get() {
-    cat "$STATE_FILE"
-    printf '\n'
-    printf '# Public State (%s):\n' "$PUBLIC_STATE_FILE"
+    if [[ -f "$STATE_FILE" ]]; then
+        cat "$STATE_FILE"
+    else
+        printf '# State file not found\n'
+    fi
+    printf '\n# Public State (%s):\n' "$PUBLIC_STATE_FILE"
     if [[ -f "$PUBLIC_STATE_FILE" ]]; then
         cat "$PUBLIC_STATE_FILE"
     else
@@ -359,7 +419,7 @@ cmd_get() {
 }
 
 cmd_set() {
-    local do_refresh=0 mode_changed=0 force_random=0
+    local do_refresh=0 mode_changed=0 same_mode_requested=0 skip_wall=0
 
     while (( $# > 0 )); do
         case "$1" in
@@ -371,7 +431,7 @@ cmd_set() {
                     update_state_key "THEME_MODE" "$2"
                     mode_changed=1
                 else
-                    force_random=1
+                    same_mode_requested=1
                 fi
                 shift 2
                 ;;
@@ -394,6 +454,10 @@ cmd_set() {
                 mode_changed=1
                 shift
                 ;;
+            --no-wall)
+                skip_wall=1
+                shift
+                ;;
             --help) usage; exit 0 ;;
             *) die "Unknown option: $1" ;;
         esac
@@ -401,11 +465,18 @@ cmd_set() {
 
     read_state
 
-    if (( mode_changed || force_random )); then
+    # 1. Action: Wallpaper Shuffle & Swap (Standard use)
+    if (( ! skip_wall )) && (( mode_changed || same_mode_requested )); then
         move_directories "$THEME_MODE"
         apply_random_wallpaper
-    elif (( do_refresh )); then
-        regenerate_current
+    else
+        # 2. Action: Directory Swap Only (User changed mode but suppressed wallpaper change)
+        (( mode_changed )) && move_directories "$THEME_MODE"
+
+        # 3. Action: Color Refresh (Settings changed or user forced same-mode refresh)
+        if (( do_refresh || same_mode_requested || mode_changed )); then
+            regenerate_current
+        fi
     fi
 }
 
@@ -424,7 +495,6 @@ case "${1:-}" in
         apply_random_wallpaper
         ;;
     refresh|apply)
-        move_directories "$THEME_MODE"
         regenerate_current
         ;;
     get)

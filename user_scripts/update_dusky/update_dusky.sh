@@ -49,6 +49,7 @@ declare -A CUSTOM_SCRIPT_PATHS=(
 
     ["warp_toggle.sh"]="user_scripts/networking/warp_toggle.sh"
     ["waypaper_config_reset.sh"]="user_scripts/desktop_apps/waypaper_config_reset.sh"
+    ["fix_theme_dir.sh"]="user_scripts/misc_extra/fix_theme_dir.sh"
 )
 
 # Centralized timestamp (Separate declaration for SC2155 compliance)
@@ -209,7 +210,7 @@ declare -ra UPDATE_SEQUENCE=(
 #    "S | 035_powerkey_lid_close_behaviour.sh"
 #    "S | 036_logrotate_optimization.sh"
 #    "S | 037_faillock_timeout.sh"
-#    "U | 038_non_asus_laptop.sh --auto"
+    "U | 038_non_asus_laptop.sh --auto"
 #    "U | 039_file_manager_switch.sh"
 #    "U | 040_swaync_dgpu_fix.sh --disable"
 #    "S | 041_asusd_service_fix.sh"
@@ -247,7 +248,7 @@ declare -ra UPDATE_SEQUENCE=(
     "U | 073_desktop_apps_username_setter.sh --quiet"
 #    "U | 074_firefox_matugen_pywalfox.sh"
 #    "U | 075_spicetify_matugen_setup.sh"
-#    "U | 076_waybar_swap_config.sh"
+    "U | 076_waybar_swap_config.sh --toggle"
 #    "U | 077_mpv_setup.sh"
 #    "U | 078_kokoro_gpu_setup.sh"
 #    "U | 079_parakeet_gpu_setup.sh"
@@ -260,11 +261,14 @@ declare -ra UPDATE_SEQUENCE=(
 #    "U | 086_generate_colorfiles_for_current_wallpaer.sh"
     "U | 087_hypr_custom_config_setup.sh"
     "U | 088_hyprctl_reload.sh"
+    "U | 090_switch_clipboard.sh --terminal"
+#    "S | 091_sddm_setup.sh --auto"
 
 
 
     "U | warp_toggle.sh --disconnect"
     "U | waypaper_config_reset.sh"
+    "U | fix_theme_dir.sh"
 )
 
 # ------------------------------------------------------------------------------

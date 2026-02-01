@@ -48,13 +48,17 @@ input_path  = '~/.config/matugen/templates/colors.css'
 output_path = '~/.config/matugen/generated/waybar-colors.css'
 post_hook   = '''
 ~/user_scripts/waybar/waybar_autostart.sh || true;
-notify-send "Theme Updated"
 '''
 
 [templates.swaync]
 input_path  = '~/.config/matugen/templates/colors.css'
 output_path = '~/.config/matugen/generated/swaync-colors.css'
-post_hook   = 'swaync-client -rs || true'
+post_hook   = '''
+command -v swaync-client >/dev/null 2>&1 && {
+  swaync-client -R
+  swaync-client -rs
+}
+'''
 
 [templates.swayosd]
 input_path  = '~/.config/matugen/templates/swayosd-colors.css'
@@ -116,11 +120,11 @@ post_hook   = 'ln -nfs $HOME/.config/matugen/generated/zathura-colors $HOME/.con
 input_path  = '~/.config/matugen/templates/pywalfox-colors.json'
 output_path = '~/.config/matugen/generated/pywalfox-colors.json'
 post_hook   = '''
-if command -v pywalfox &> /dev/null; then
-    mkdir -p $HOME/.cache/wal;
-    ln -nfs $HOME/.config/matugen/generated/pywalfox-colors.json $HOME/.cache/wal/colors.json;
-    pywalfox update || true;
-fi
+command -v pywalfox >/dev/null 2>&1 && {
+    mkdir -p $HOME/.cache/wal
+    ln -nfs $HOME/.config/matugen/generated/pywalfox-colors.json $HOME/.cache/wal/colors.json
+    pywalfox update || true
+}
 '''
 
 [templates.Obsidian]
@@ -139,11 +143,11 @@ ln -nfs $HOME/.config/matugen/generated/obsidian-theme.css $HOME/Documents/pensi
 input_path  = '~/.config/matugen/templates/spotify-colors.ini'
 output_path = '~/.config/matugen/generated/spotify-colors.ini'
 post_hook   = '''
-if command -v spicetify &> /dev/null && [ -d "$HOME/.config/spicetify/Themes/dusky" ]; then
-    ln -nfs $HOME/.config/matugen/generated/spotify-colors.ini $HOME/.config/spicetify/Themes/dusky/color.ini;
-    spicetify apply -n;
-    hyprctl dispatch sendshortcut "CTRL SHIFT, R, class:^(spotify)$" || true;
-fi
+command -v spicetify >/dev/null 2>&1 && [ -d "$HOME/.config/spicetify/Themes/dusky" ] && {
+    ln -nfs $HOME/.config/matugen/generated/spotify-colors.ini $HOME/.config/spicetify/Themes/dusky/color.ini
+    spicetify apply -n
+    hyprctl dispatch sendshortcut 'CTRL SHIFT, R, class:^(spotify)$' || true
+}
 '''
 
 [templates.steam]
@@ -171,12 +175,26 @@ output_path = '~/.config/matugen/generated/btop-colors.theme'
 post_hook   = '''
 mkdir -p $HOME/.config/btop/themes;
 ln -nfs $HOME/.config/matugen/generated/btop-colors.theme $HOME/.config/btop/themes/matugen.theme
+notify-send -i applications-graphics-symbolic "Theme Updated"
 '''
 
-[templates.discord]
-input_path  = '~/.config/matugen/templates/midnight-discord.css'
-output_path = '~/.config/Equicord/settings/quickCss.css'
+[templates.fastfetch]
+input_path  = '~/.config/matugen/templates/fastfetch'
+output_path = '~/.config/matugen/templates/fastfetch'
+post_hook   = '~/user_scripts/fastfetch/logogen.sh'
 
-[templates.obs-studio]
-input_path  = '~/.config/matugen/templates/obs-studio.ovt'
-output_path = '~/.config/obs-studio/themes/matugen.ovt'
+[templates.discord]
+input_path  = '~/.config/matugen/templates/midnight-discord.json'
+output_path = '~/.config/matugen/generated/midnight-discord.json'
+post_hook   = '''
+for p in \
+  "$HOME/.config/vesktop/settings/quickCss.css" \
+  "$HOME/.var/app/dev.vencord.Vesktop/config/vesktop/settings/quickCss.css" \
+  "$HOME/.config/Vencord/settings/quickCss.css" \
+  "$HOME/.config/equibop/settings/quickCss.css" \
+  "$HOME/.var/app/org.equicord.equibop/config/equibop/settings/quickCss.css" \
+  "$HOME/.config/Equicord/settings/quickCss.css" 
+do
+  [ -d "$(dirname "$p")" ] && ln -nfs "$HOME/.config/generated/midnight-discord.css" "$p"
+done
+'''

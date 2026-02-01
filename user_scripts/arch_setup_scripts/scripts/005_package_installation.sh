@@ -6,9 +6,9 @@
 
 # --- 1. CONFIGURATION ---
 
-# Group 1: Graphics & Drivers (Intel 12th Gen)
+# Group 1: Graphics & Drivers
 pkgs_graphics=(
-  "intel-media-driver" "mesa" "vulkan-intel" "mesa-utils" "intel-gpu-tools" "libva" "libva-utils" "vulkan-icd-loader" "vulkan-tools" "sof-firmware" "linux-firmware" "acpi_call"
+  "intel-media-driver" "mesa" "vulkan-intel" "mesa-utils" "intel-gpu-tools" "libva" "libva-utils" "vulkan-icd-loader" "vulkan-tools" "sof-firmware" "linux-firmware" "acpi_call-dkms"
 )
 
 # Group 2: Hyprland Core

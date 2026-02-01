@@ -22,7 +22,7 @@
 
 # The number of bars (0-512). 0 sets it to auto (fill up console).
 # Bars' width and space between bars in number of characters.
-; bars = 12
+; bars = 0
 ; bar_width = 2
 ; bar_spacing = 1
 # bar_height is only used for output in "noritake" format
@@ -183,13 +183,13 @@
 ; raw_target = /dev/stdout
 
 # Raw data format. Can be 'binary' or 'ascii'.
-; data_format = ascii
+; data_format = binary
 
 # Binary bit format, can be '8bit' (0-255) or '16bit' (0-65530).
 ; bit_format = 16bit
 
 # Ascii max value. In 'ascii' mode range will run from 0 to value specified here
-; ascii_max_range = 9
+; ascii_max_range = 1000
 
 # Ascii delimiters. In ascii format each bar and frame is separated by a delimiters.
 # Use decimal value in ascii table (i.e. 59 = ';' and 10 = '\n' (line feed)).
@@ -287,7 +287,7 @@ theme = 'cava-colors.ini'
 # Percentage value for integral smoothing. Takes values from 0 - 100.
 # Higher values means smoother, but less precise. 0 to disable.
 # DEPRECATED as of 0.8.0, use noise_reduction instead
-; noise_reduction = 0.77
+; integral = 77
 
 # Disables or enables the so-called "Monstercat smoothing" with or without "waves". Set to 0 to disable.
 ; monstercat = 0

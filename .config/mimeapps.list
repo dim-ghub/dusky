@@ -45,14 +45,12 @@ audio/ogg=mpv.desktop
 audio/wav=mpv.desktop
 application/pdf=org.pwmt.zathura.desktop
 inode/directory=thunar.desktop
-application/x-zerosize=codium-wayland.desktop
+application/x-zerosize=nvim.desktop
 
 [Added Associations]
 video/mp4=mpv.desktop;vlc.desktop;fr.handbrake.ghb.desktop;
 video/x-matroska=mpv.desktop;vlc.desktop;
 text/plain=codium-wayland.desktop;nvim.desktop;org.gnome.TextEditor.desktop;
-application/json=codium-wayland.desktop;nvim.desktop;org.gnome.TextEditor.desktop;
-application/x-zerosize=nvim.desktop;codium-wayland.desktop;
-text/css=codium-wayland.desktop;
-text/x-csrc=codium-wayland.desktop;
-application/toml=codium-wayland.desktop;codium.desktop;
+application/json=nvim.desktop;org.gnome.TextEditor.desktop;
+application/x-zerosize=codium-wayland.desktop;nvim.desktop;
+application/toml=codium-wayland.desktop;
